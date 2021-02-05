@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Chat</title>
+    <style>
+        #body{
+            padding: 5px;
+            color: white;
+            display: inline-block;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            line-height: 20px;
+            margin: 2px;
+            border-radius: 5px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -ms-border-radius: 5px;
+            -o-border-radius: 5px;
+            border:0px;
+            text-align: left;
+	        display:block;
+	        background-color: rgb(132, 143, 152);
+	        width: 500px;
+	        height: 500px;
+	        overflow-y: scroll;
+	        overflow-x: hide;
+        }
+
+        #copy {
+            background-color: rgb(106, 124, 138);
+            text-align: right;
+            float: right;
+        }
+
+        #name {
+            background-color: rgb(11, 53, 82);
+        }
+        #send {
+            background-color: rgb(71, 210, 152);
+            cursor:pointer;
+        }
+        #message {
+            background-color: rgb(25, 26, 27);
+
+        }
+        #name, #send, #message, #copy {
+            padding: 5px;
+            color: white;
+            display: inline-block;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            line-height: 20px;
+            margin: 2px;
+            border-radius: 5px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -ms-border-radius: 5px;
+            -o-border-radius: 5px;
+            min-width: 20px;
+            border: 0px;
+            text-align: left;
+        }
+        #time{
+            font-size: 12px;
+            color:gray;
+        }
+    </style>
+</head>
+<body>
+    <script>
+    let ws = new WebSocket("ws://tecraft.ru:8080/events/");
+    ws.onmessage = ({data}) => {
+        var date = new Date();
+        document.getElementById("body").innerHTML = "<div id=message>" + data + "<br><span id=time>" +  date.toString().split(' ', 5).join(' ') + "</span></div><br>" + document.getElementById("body").innerHTML;
+        if(data.indexOf("Welcome") > 0 && document.auth == 0){
+            document.auth = 1;
+            document.getElementById('send').value='Send';
+            document.getElementById('name').style.width = '400px';
+            document.getElementById('name').placeholder='Enter your message';
+            document.getElementById('name').value='';
+        }
+    }
+    document.auth = 0;
+    function send(){
+        if(document.auth == 1){
+            ws.send(document.getElementById('name').value);
+            document.getElementById('name').value='';
+            return;
+        }
+        ws.send('/iam ' + document.getElementById('name').value);
+    }
+    function stop(){
+        document.getElementById('send').disabled = true;
+        document.getElementById('send').style.opacity = 0.5;
+        document.getElementById('send').value='Update page, please';
+        document.getElementById('name').placeholder='Enter your name';
+        document.auth = 0;
+        var date = new Date();
+        document.getElementById("body").innerHTML = "<div id=message><b style='color:red'>Server:</b> Connection closed<br><span id=time>" +  date.toString().split(' ', 5).join(' ') + "</span></div><br>" + document.getElementById("body").innerHTML;
+    }
+    ws.onopen = () => document.getElementById('send').disabled = false;
+    ws.onerror = function(e){
+        stop();
+    }
+    ws.onclose = function(e){
+        stop();
+    }
+    </script>
+<div id="body">
+
+</div>
+    <input id="name" type="text" name="name" value="" placeholder="Enter your name">
+    <input id="send" type="submit" disabled value="Enter to chat" onclick="send()">
+<div id="copy">Developers: Alieva Darya, Bayniyazova Diana, Eliseev Evgeniy</div>
+</body>
+</html>
